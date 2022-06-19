@@ -1,0 +1,21 @@
+---
+embuilder_targets:
+  - zlib
+  - bzip2
+  - libc-mt
+  - libdlmalloc-mt
+  - libsockets-mt
+  - libstubs
+  - libcompiler_rt
+  - libcompiler_rt-mt
+  - crtbegin
+  - libhtml5
+  - libc++-mt-noexcept
+  - libc++abi-mt-noexcept
+  - libal
+  - libGL-mt
+  - libstubs-debug
+  - libc-mt-debug
+
+emscripten_version_file: |
+  "{{ emsdk_path }}/upstream/emscripten/emscripten-version.txt"

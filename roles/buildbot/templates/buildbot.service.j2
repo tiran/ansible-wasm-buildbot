@@ -1,0 +1,17 @@
+[Unit]
+Description=Buildbot Worker {{ buildbot_name }}
+After=nss-lookup.target network-online.target
+
+[Service]
+User=buildbot
+Group=buildbot
+WorkingDirectory={{ buildbot_home }}
+ExecStart={{ buildbot_venv }}/bin/buildbot-worker --verbose start --nodaemon {{ buildbot_basedir }}
+EnvironmentFile=/etc/environment
+Restart=always
+ProtectSystem=full
+PrivateDevices=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

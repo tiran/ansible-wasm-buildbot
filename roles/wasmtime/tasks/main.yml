@@ -1,0 +1,33 @@
+---
+- name: Install distro dependencies
+  package:
+    state: present
+    name:
+      - curl
+
+- name: Create wasmtime home directory
+  ansible.builtin.file:
+    path: "{{ wasmtime_home }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Download wasmtime installer
+  ansible.builtin.get_url:
+    url: https://wasmtime.dev/install.sh
+    dest: "{{ wasmtime_install }}"
+    force: false
+    mode: '0755'
+
+- name: Run wasmtime installer
+  ansible.builtin.command:
+    cmd: "{{ wasmtime_install}} --version v{{ wasmtime_version }}"
+  environment:
+    WASMTIME_HOME: "{{ wasmtime_home }}"
+
+- name: Add WASMTIME_HOME to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^WASMTIME_HOME='
+    line: WASMTIME_HOME="{{ wasmtime_home }}"

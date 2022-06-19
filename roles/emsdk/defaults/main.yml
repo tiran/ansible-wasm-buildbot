@@ -1,0 +1,4 @@
+---
+emsdk_path: "/opt/emsdk"
+# "latest" is not supported yet
+emsdk_version: "3.1.13"

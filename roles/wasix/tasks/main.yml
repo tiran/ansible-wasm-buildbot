@@ -1,0 +1,22 @@
+---
+- name: Clone WASIX git repo
+  git:
+    dest: "{{ wasix_git_path }}"
+    repo: https://github.com/singlestore-labs/wasix.git
+    update: true
+    force: true
+
+- name: Build WASIX
+  ansible.builtin.command:
+    cmd: "make"
+    chdir: "{{ wasix_git_path }}"
+
+- name: Install WASIX
+  ansible.builtin.command:
+    cmd: "make install"
+    chdir: "{{ wasix_git_path }}"
+
+- name: Clean WASIX builddir
+  ansible.builtin.command:
+    cmd: "make clean"
+    chdir: "{{ wasix_git_path }}"

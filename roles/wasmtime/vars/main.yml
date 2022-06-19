@@ -1,0 +1,3 @@
+---
+wasmtime_install: "{{ wasmtime_home }}/install-wasmtime.sh"
+wasmtime_cmd: "{{ wasmtime_home }}/bin/wasmtime"

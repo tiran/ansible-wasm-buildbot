@@ -1,0 +1,2 @@
+---
+wasi_sdk_version_file: "{{ wasi_sdk_path }}/wasi-sdk-version.txt"

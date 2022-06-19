@@ -1,0 +1,110 @@
+---
+- name: Install distro dependencies (Debian/Ubuntu)
+  package:
+    state: present
+    name:
+      - git
+      - python3
+      - xz-utils
+      - bzip2
+      - ccache
+      - make
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install distro dependencies (Fedora)
+  package:
+    state: present
+    name:
+      - git
+      - python3
+      - which
+      - xz
+      - bzip2
+      - ccache
+      - make
+  when: ansible_distribution == 'Fedora'
+
+- name: Clone EMSDK git repo
+  git:
+    dest: "{{ emsdk_path }}"
+    repo: https://github.com/emscripten-core/emsdk.git
+    update: true
+    force: true
+
+- name: Check Emscripten version file
+  ansible.builtin.stat:
+    path: "{{ emscripten_version_file }}"
+  register: version_file
+
+- name: Read Emscripten version file
+  ansible.builtin.slurp:
+    src: "{{ emscripten_version_file }}"
+  register: version_slurp
+  when: version_file.stat.exists
+
+- name: Get Emscripten file version
+  set_fact:
+    file_version: "{{ version_slurp.content | b64decode | trim | replace('\"', '') }}"
+  when: version_file.stat.exists
+
+- name: Check whether we need to update
+  set_fact:
+    emscripte_needs_update: "{{ not version_file.stat.exists or file_version != emsdk_version }}"
+
+- name: Install EMSDK
+  command: "{{ emsdk_path }}/emsdk install {{ emsdk_version }}"
+  when: emscripte_needs_update
+
+- name: Activate EMSDK
+  command: "{{ emsdk_path }}/emsdk activate {{ emsdk_version }}"
+  when: emscripte_needs_update
+
+# HACK
+- name: Create softlink to current node version
+  shell: "ln -srf $(find {{emsdk_path }}/node -maxdepth 1 -name '*64bit') {{ emsdk_path }}/node/current"
+
+- name: Check node symlink
+  ansible.builtin.stat:
+    path: "{{ emsdk_path }}/node/current/bin/node"
+  register: node_bin
+
+- name: Fail if node binary is not found
+  fail:
+    msg: "{{ emsdk_path }}/node/current/bin/node is missing"
+  when: not node_bin.stat.exists
+
+- name: Pre-build ports with embuilder
+  command: "{{ emsdk_path }}/upstream/emscripten/embuilder build {{ item }}"
+  args:
+    creates: "{{emsdk_path}}/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/{{ item }}.a"
+  environment:
+    EM_COMPILER_WRAPPER: ccache
+  with_items: "{{ embuilder_targets }}"
+
+- name: Pre-build ports with embuilder (PIC)
+  command: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
+  args:
+    creates: "{{emsdk_path}}/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/pic/{{ item }}.a"
+  environment:
+    EM_COMPILER_WRAPPER: ccache
+  with_items: "{{ embuilder_targets }}"
+
+- name: Add EMSDK to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^EMSDK='
+    line: EMSDK="{{ emsdk_path }}"
+
+- name: Add EM_CONFIG to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^EM_CONFIG='
+    line: EM_CONFIG="{{ emsdk_path }}/.emscripten"
+
+- name: Add EM_COMPILER_WRAPPER=ccache to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^EM_COMPILER_WRAPPER='
+    line: EM_COMPILER_WRAPPER="ccache"
+
+# EMSDK_NODE="/opt/emsdk/node/current/bin/node"

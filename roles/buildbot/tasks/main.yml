@@ -1,0 +1,64 @@
+---
+- name: Install distro dependencies (Debian/Ubuntu)
+  package:
+    state: present
+    name:
+      - libpq-dev
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install distro dependencies (Fedora)
+  package:
+    state: present
+    name:
+      - libpq-devel
+  when: ansible_distribution == 'Fedora'
+
+- name: Create buildbot user account
+  ansible.builtin.user:
+    name: "{{ buildbot_user }}"
+    comment: Python buildbot
+    create_home: true
+    home: "{{ buildbot_home }}"
+
+- name: Create buildbot venv
+  ansible.builtin.command:
+    cmd: "{{ pyenv_path }}/shims/python3.9 -m venv --upgrade-deps {{ buildbot_venv }}"
+    creates: "{{ buildbot_venv }}/bin/pip"
+  become: true
+  become_user: "{{ buildbot_user }}"
+
+- name: Install / upgrade buildbot worker
+  ansible.builtin.command:
+    cmd: "{{ buildbot_venv }}/bin/pip install --upgrade buildbot-worker"
+  become: true
+  become_user: "{{ buildbot_user }}"
+
+- name: Check for buildbot.tac
+  ansible.builtin.stat:
+    path: "{{ buildbot_basedir }}/buildbot.tac"
+  register: tac
+
+- name: Print create-worker command
+  ansible.builtin.debug:
+    msg: "su buildbot -c '{{ buildbot_venv }}/bin/buildbot-worker create-worker {{ buildbot_basedir }} buildbot-api.python.org:9020 {{ buildbot_name }} SECRET'"
+  when: not tac.stat.exists
+
+- name: Create systemd service
+  template:
+    src: buildbot.service.j2
+    dest: "/etc/systemd/system/buildbot.service"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Enable buildbot systemd service
+  ansible.builtin.systemd:
+    name: "buildbot"
+    daemon_reload: true
+    enabled: true
+
+- name: Start systemd service
+  ansible.builtin.systemd:
+    name: "buildbot"
+    state: started
+  when: tac.stat.exists

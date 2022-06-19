@@ -1,0 +1,4 @@
+---
+wasmtime_home: "/opt/wasmtime"
+# "latest" is not supported yet
+wasmtime_version: "0.36.0"

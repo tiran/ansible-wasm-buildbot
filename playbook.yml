@@ -1,0 +1,68 @@
+---
+- name: WASM build env
+  hosts: all
+
+  vars:
+    emsdk_version: "3.1.13"
+    wasi_sdk_version: "16"
+    wasmtime_version: "0.36.0"
+    pyenv_env: "system"
+    pyenv_path: "/opt/pyenv"
+    pyenv_enable_autocompletion: false
+    pyenv_python_versions:
+      - 3.9.13
+    pyenv_global:
+      - 3.9.13
+
+  pre_tasks:
+    - name: Install Python build dependencies
+      package:
+        state: present
+        name:
+          - build-essential
+          - pkg-config
+          - ccache
+          - gdb
+          # - lcov
+          # - libb2-dev
+          - libbz2-dev
+          - libffi-dev
+          - libgdbm-dev
+          - libgdbm-compat-dev
+          - liblzma-dev
+          - libncurses5-dev
+          - libreadline6-dev
+          - libsqlite3-dev
+          - libssl-dev
+          - lzma
+          - liblzma-dev
+          # - tk-dev
+          - uuid-dev
+          # - xvfb
+          - zlib1g-dev
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+  roles:
+    - role: emsdk
+    - role: wasi-sdk
+    - role: wasix
+    - role: wasmtime
+    - role: staticdev.pyenv
+    - role: buildbot
+
+  post_tasks:
+    - name: Update ccache symlinks
+      ansible.builtin.command:
+        cmd: update-ccache-symlinks
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - name: Add PYENV_ROOT to /etc/environment
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        regexp: '^PYENV_ROOT='
+        line: PYENV_ROOT="{{ pyenv_path }}"
+    - name: Add PATH to /etc/environment
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        regexp: '^PATH='
+        # line: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+        line: PATH="/usr/lib/ccache:/opt/emsdk/upstream/emscripten:/opt/emsdk/node/current/bin:/opt/wasmtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"

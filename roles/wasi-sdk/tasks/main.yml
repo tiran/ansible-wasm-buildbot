@@ -1,0 +1,69 @@
+---
+- name: Check WASI SDK version file
+  ansible.builtin.stat:
+    path: "{{ wasi_sdk_version_file }}"
+  register: version_file
+
+- name: Read WASI SDK version file
+  ansible.builtin.slurp:
+    src: "{{ wasi_sdk_version_file }}"
+  register: version_slurp
+  when: version_file.stat.exists
+
+- name: Get WASI SDK file version
+  set_fact:
+    file_version: "{{ version_slurp.content | b64decode | trim | replace('\"', '') }}"
+  when: version_file.stat.exists
+
+- name: Check whether we need to update
+  set_fact:
+    wasi_sdk_needs_update: "{{ not version_file.stat.exists or file_version != wasi_sdk_version }}"
+
+- name: Remove old WASI SDK root dir
+  ansible.builtin.file:
+    path: "{{ wasi_sdk_path }}"
+    state: absent
+  when: wasi_sdk_needs_update
+
+- name: Create WASI SDK root dir
+  ansible.builtin.file:
+    path: "{{ wasi_sdk_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Download WASI SDK
+  ansible.builtin.unarchive:
+    src: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-{{ wasi_sdk_version }}/wasi-sdk-{{ wasi_sdk_version }}.0-linux.tar.gz
+    dest: "{{ wasi_sdk_path }}"
+    remote_src: true
+    extra_opts: [--strip-components=1, --owner=root, --group=root]
+  when: wasi_sdk_needs_update
+
+- name: chown/chmod WASI SDK directory
+  ansible.builtin.file:
+    path: "{{ wasi_sdk_path }}"
+    recurse: true
+    owner: root
+    group: root
+    mode: u+rwX,g+rX,o+rX
+
+- name: Create WASI version file
+  template:
+    src: wasi_sdk_version.txt.j2
+    dest: "{{ wasi_sdk_version_file }}"
+
+- name: Create wasm32-unknown-wasi-pkg-config script for cross-compiling
+  template:
+    src: wasm32-unknown-wasi-pkg-config.j2
+    dest: "/usr/local/bin/wasm32-unknown-wasi-pkg-config"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Add WASI_SDK_PATH to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^WASI_SDK_PATH='
+    line: WASI_SDK_PATH="{{ wasi_sdk_path }}"
