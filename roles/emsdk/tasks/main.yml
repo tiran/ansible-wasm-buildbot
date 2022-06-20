@@ -39,17 +39,17 @@
 - name: Read Emscripten version file
   ansible.builtin.slurp:
     src: "{{ emscripten_version_file }}"
-  register: version_slurp
+  register: emscripten_version_slurp
   when: version_file.stat.exists
 
 - name: Get Emscripten file version
   set_fact:
-    file_version: "{{ version_slurp.content | b64decode | trim | replace('\"', '') }}"
+    emscripten_file_version: "{{ emscripten_version_slurp.content | b64decode | trim | replace('\"', '') }}"
   when: version_file.stat.exists
 
 - name: Check whether we need to update
   set_fact:
-    emscripte_needs_update: "{{ not version_file.stat.exists or file_version != emsdk_version }}"
+    emscripte_needs_update: "{{ not version_file.stat.exists or emscripten_file_version != emsdk_version }}"
 
 - name: Install EMSDK
   command: "{{ emsdk_path }}/emsdk install {{ emsdk_version }}"
@@ -73,21 +73,28 @@
     msg: "{{ emsdk_path }}/node/current/bin/node is missing"
   when: not node_bin.stat.exists
 
+# cache emports as buildbot. embuilder clears outdated builds for us.
 - name: Pre-build ports with embuilder
-  command: "{{ emsdk_path }}/upstream/emscripten/embuilder build {{ item }}"
-  args:
-    creates: "{{emsdk_path}}/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/{{ item }}.a"
+  ansible.builtin.command:
+    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build {{ item }}"
+  with_items: "{{ embuilder_targets }}"
   environment:
     EM_COMPILER_WRAPPER: ccache
-  with_items: "{{ embuilder_targets }}"
+  register: embuilder_output
+  changed_when: '" generating " in embuilder_output.stdout'
+  become: true
+  become_user: "{{ buildbot_user }}"
 
-- name: Pre-build ports with embuilder (PIC)
-  command: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
-  args:
-    creates: "{{emsdk_path}}/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/pic/{{ item }}.a"
+- name: Pre-build ports with embuilder
+  ansible.builtin.command:
+    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
+  with_items: "{{ embuilder_targets }}"
   environment:
     EM_COMPILER_WRAPPER: ccache
-  with_items: "{{ embuilder_targets }}"
+  register: embuilder_output
+  changed_when: '" generating " in embuilder_output.stdout'
+  become: true
+  become_user: "{{ buildbot_user }}"
 
 - name: Add EMSDK to /etc/environment
   ansible.builtin.lineinfile:
@@ -107,4 +114,8 @@
     regexp: '^EM_COMPILER_WRAPPER='
     line: EM_COMPILER_WRAPPER="ccache"
 
-# EMSDK_NODE="/opt/emsdk/node/current/bin/node"
+- name: Add EMSDK_NODE to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^EMSDK_NODE='
+    line: EMSDK_NODE="{{ emsdk_path }}/node/current/bin/node"

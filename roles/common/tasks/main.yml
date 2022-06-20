@@ -1,0 +1,88 @@
+---
+- name: Install Python build dependencies (Debian/Ubuntu)
+  package:
+    state: present
+    name:
+      - build-essential
+      - pkg-config
+      - ccache
+      - gdb
+      # - lcov
+      # - libb2-dev
+      - libbz2-dev
+      - libffi-dev
+      - libgdbm-dev
+      - libgdbm-compat-dev
+      - liblzma-dev
+      - libncurses5-dev
+      - libreadline6-dev
+      - libsqlite3-dev
+      - libssl-dev
+      - lzma
+      - liblzma-dev
+      # - tk-dev
+      - uuid-dev
+      # - xvfb
+      - zlib1g-dev
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install Python build dependencies (Fedora)
+  package:
+    state: present
+    name:
+      - gcc
+      - make
+      - pkgconfig
+      - git-core
+      - tzdata
+      - procps-ng
+      - bluez-libs-devel
+      - bzip2-devel
+      - expat-devel
+      - gdbm-devel
+      - libffi-devel
+      - libnsl2-devel
+      - libuuid-devel
+      - ncurses-devel
+      - openssl-devel
+      - readline-devel
+      - sqlite-devel
+      # - tcl-devel
+      # - tk-devel
+      - xz-devel
+      - zlib-devel
+  when: ansible_distribution == 'Fedora'
+
+- name: Update ccache symlinks
+  ansible.builtin.command:
+    cmd: update-ccache-symlinks
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Create buildbot user account
+  ansible.builtin.user:
+    name: "{{ buildbot_user }}"
+    comment: Python buildbot
+    create_home: true
+    home: "{{ buildbot_home }}"
+
+- name: Add PYENV_ROOT to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PYENV_ROOT='
+    line: PYENV_ROOT="{{ pyenv_path }}"
+
+- name: Add PATH to /etc/environment (Debian/Ubuntu)
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PATH='
+    # PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    line: PATH="/usr/lib/ccache:/opt/emsdk/upstream/emscripten:/opt/emsdk/node/current/bin:/opt/wasmtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Add PATH to /etc/environment (Fedora)
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PATH='
+    # PATH=/usr/lib64/ccache:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+    line: PATH="/usr/lib64/ccache:/opt/emsdk/upstream/emscripten:/opt/emsdk/node/current/bin:/opt/wasmtime/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+  when: ansible_distribution == 'Fedora'

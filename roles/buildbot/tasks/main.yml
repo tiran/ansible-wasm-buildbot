@@ -13,12 +13,7 @@
       - libpq-devel
   when: ansible_distribution == 'Fedora'
 
-- name: Create buildbot user account
-  ansible.builtin.user:
-    name: "{{ buildbot_user }}"
-    comment: Python buildbot
-    create_home: true
-    home: "{{ buildbot_home }}"
+# NOTE: buildbot user account is created in "common" role
 
 - name: Create buildbot venv
   ansible.builtin.command:

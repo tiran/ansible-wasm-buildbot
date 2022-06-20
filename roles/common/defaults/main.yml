@@ -1,0 +1,3 @@
+---
+buildbot_user: "buildbot"
+buildbot_home: "/opt/buildbot"
