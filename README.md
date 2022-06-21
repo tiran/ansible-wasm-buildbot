@@ -25,7 +25,7 @@ partprobe /dev/disk/azure/scsi1/lun0-part1
 ```
 # append to /etc/fstab
 /dev/disk/azure/scsi1/lun0-part1 /datadrive xfs defaults,nofail 0 2
-/opt /datadrive/opt none defaults,bind 0 2
+/datadrive/opt /opt none defaults,bind 0 2
 ```
 
 ```
