@@ -13,8 +13,8 @@ user can become root without sudo password.
 
 We install all buildbot and buildenv files on a persistent disk, not on the
 operating system disk. A fresh data disk has no partition table and file
-system. The disk is mounted to ``/datadrive`` and ``/opt`` is bind-mounted
-to ``/datadrive/opt``.
+system. The playbook mounts the disk to ``/datadrive`` and bind-mounts
+``/opt`` to ``/datadrive/opt``.
 
 ```
 parted /dev/disk/azure/scsi1/lun0 mklabel gpt mkpart xfspart xfs 0% 100%
@@ -22,16 +22,10 @@ mkfs.xfs /dev/disk/azure/scsi1/lun0-part1
 partprobe /dev/disk/azure/scsi1/lun0-part1
 ```
 
-```
-# append to /etc/fstab
-/dev/disk/azure/scsi1/lun0-part1 /datadrive xfs defaults,nofail 0 2
-/datadrive/opt /opt none defaults,bind 0 2
-```
+## Monitoring
+
+The buildbot host is running netdata on local HTTP port 19999.
 
 ```
-mkdir /datadrive
-mount /datadrive
-mkdir /datadrive/opt
-mount /opt
+ssh -C -L 19999:127.0.0.1:19999  azureuser@HOST
 ```
-

@@ -103,7 +103,7 @@
   environment:
     EM_COMPILER_WRAPPER: ccache
   register: embuilder_output
-  changed_when: '" generating " in embuilder_output.stdout'
+  changed_when: '" generating " in embuilder_output.stderr'
   become: true
   become_user: "{{ buildbot_user }}"
 
@@ -114,7 +114,7 @@
   environment:
     EM_COMPILER_WRAPPER: ccache
   register: embuilder_output
-  changed_when: '" generating " in embuilder_output.stdout'
+  changed_when: '" generating " in embuilder_output.stderr'
   become: true
   become_user: "{{ buildbot_user }}"
 

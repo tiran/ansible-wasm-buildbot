@@ -1,4 +1,28 @@
 ---
+- name: Mount /datadrive
+  ansible.posix.mount:
+    path: /datadrive
+    src: /dev/disk/azure/scsi1/lun0-part1
+    fstype: xfs
+    opts: defaults,nofail
+    state: mounted
+
+- name: Create /datadrive/opt directory
+  ansible.builtin.file:
+    path: /datadrive/opt
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Mount /opt to /datadrive/opt
+  ansible.posix.mount:
+    path: /opt
+    src: /datadrive/opt
+    fstype: none
+    opts: defaults,bind
+    state: mounted
+
 - name: Install Python build dependencies (Debian/Ubuntu)
   package:
     state: present
@@ -57,6 +81,19 @@
   ansible.builtin.command:
     cmd: update-ccache-symlinks
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  changed_when: false
+
+- name: Install netdata monitoring
+  package:
+    state: present
+    name:
+      - netdata
+
+- name: Enable buildbot systemd service
+  ansible.builtin.systemd:
+    name: "netdata"
+    enabled: true
+    state: started
 
 - name: Create buildbot user account
   ansible.builtin.user:

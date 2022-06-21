@@ -28,15 +28,37 @@
   become: true
   become_user: "{{ buildbot_user }}"
 
+- name: Create buildbot directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ buildbot_user }}"
+    group: "{{ buildbot_user }}"
+    mode: '0755'
+  with_items:
+    - "{{ buildbot_basedir }}"
+    - "{{ buildbot_basedir }}/info"
+
+- name: Create buildbot info/admin
+  template:
+    src: buildbot_admin.j2
+    dest: "{{ buildbot_basedir }}/info/admin"
+    owner: "{{ buildbot_user }}"
+    group: "{{ buildbot_user }}"
+    mode: '0644'
+
+- name: Create buildbot info/host
+  template:
+    src: buildbot_host.j2
+    dest: "{{ buildbot_basedir }}/info/host"
+    owner: "{{ buildbot_user }}"
+    group: "{{ buildbot_user }}"
+    mode: '0644'
+
 - name: Check for buildbot.tac
   ansible.builtin.stat:
     path: "{{ buildbot_basedir }}/buildbot.tac"
-  register: tac
-
-- name: Print create-worker command
-  ansible.builtin.debug:
-    msg: "su buildbot -c '{{ buildbot_venv }}/bin/buildbot-worker create-worker {{ buildbot_basedir }} buildbot-api.python.org:9020 {{ buildbot_name }} SECRET'"
-  when: not tac.stat.exists
+  register: buildbot_tac
 
 - name: Create systemd service
   template:
@@ -51,9 +73,3 @@
     name: "buildbot"
     daemon_reload: true
     enabled: true
-
-- name: Start systemd service
-  ansible.builtin.systemd:
-    name: "buildbot"
-    state: started
-  when: tac.stat.exists and False
