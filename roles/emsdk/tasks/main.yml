@@ -59,19 +59,41 @@
   command: "{{ emsdk_path }}/emsdk activate {{ emsdk_version }}"
   when: emscripte_needs_update
 
-# HACK
-- name: Create softlink to current node version
-  shell: "ln -srf $(find {{emsdk_path }}/node -maxdepth 1 -name '*64bit') {{ emsdk_path }}/node/current"
+- name: chown/chmod EMSDK directory
+  ansible.builtin.file:
+    path: "{{ emsdk_path }}"
+    recurse: true
+    owner: root
+    group: root
+    mode: u+rwX,g+rX,o+rX
 
-- name: Check node symlink
-  ansible.builtin.stat:
-    path: "{{ emsdk_path }}/node/current/bin/node"
-  register: node_bin
+- name: Find latest EMSDK node
+  ansible.builtin.find:
+    paths: "{{ emsdk_path }}/node"
+    patterns: "*64bit"
+    file_type: directory
+    recurse: false
+  failed_when: emsdk_node_find.matched != 1
+  register: emsdk_node_find
 
-- name: Fail if node binary is not found
-  fail:
-    msg: "{{ emsdk_path }}/node/current/bin/node is missing"
-  when: not node_bin.stat.exists
+- name: Create node current directory
+  ansible.builtin.file:
+    path: "{{ emsdk_path }}/node/current/bin"
+    state: directory
+    owner: root
+    group: root
+
+# The wrapper script serves two purposes:
+# 1) It provides a stable path that does not rely on node version.
+# 2) It runs node with nice -n5 to work around
+#    https://github.com/python/cpython/issues/94026 .
+- name: Create node current wrapper script
+  template:
+    src: node.j2
+    dest: "{{ emsdk_path }}/node/current/bin/node"
+    owner: root
+    group: root
+    mode: '0755'
 
 # cache emports as buildbot. embuilder clears outdated builds for us.
 - name: Pre-build ports with embuilder
