@@ -18,6 +18,7 @@
 - name: Check whether we need to update
   set_fact:
     wasi_sdk_needs_update: "{{ not version_file.stat.exists or file_version != wasi_sdk_version }}"
+  changed_when: wasi_sdk_needs_update
 
 - name: Remove old WASI SDK root dir
   ansible.builtin.file:

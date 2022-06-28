@@ -50,6 +50,7 @@
 - name: Check whether we need to update
   set_fact:
     emscripte_needs_update: "{{ not version_file.stat.exists or emscripten_file_version != emsdk_version }}"
+  changed_when: emscripte_needs_update
 
 - name: Install EMSDK
   command: "{{ emsdk_path }}/emsdk install {{ emsdk_version }}"
