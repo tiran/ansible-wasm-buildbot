@@ -3,7 +3,7 @@
   hosts: all
 
   vars:
-    emsdk_version: "3.1.13"
+    emsdk_version: "3.1.15"
     wasi_sdk_version: "16"
     wasmtime_version: "0.38.0"
     pyenv_env: "system"
