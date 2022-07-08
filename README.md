@@ -4,6 +4,7 @@ Ansible playbook for CPython WASM Buildbot
 
 ## Dependencies
 
+* Ansible (ansible-playbook, ansible-galaxy)
 * https://galaxy.ansible.com/staticdev/pyenv
 
 ## Azure provisioning
@@ -21,6 +22,30 @@ parted /dev/disk/azure/scsi1/lun0 mklabel gpt mkpart xfspart xfs 0% 100%
 mkfs.xfs /dev/disk/azure/scsi1/lun0-part1
 partprobe /dev/disk/azure/scsi1/lun0-part1
 ```
+
+## Ansible provisioning
+
+* copy ``inventory.example`` to ``inventory`` and adjust the file
+* run ``./ansible.sh``
+
+## Post installation
+
+The playbook does not provision and start the buildbot service. Follow the
+on-screen installations to create the worker and start the buildbot.
+
+```shell
+# su buildbot -c '.../bin/buildbot-worker create-worker ...
+# systemctl start buildbot.service
+```
+
+## Updates
+
+The playbook can update and downgrade EMSDK, WASI-SDK, WASIX, and wasmtime.
+It is recommended to check the
+[buildbot UI](https://buildbot.python.org/all/#/builders?tags=%2Bwasm) first
+and then stop the buildbot worker with ``systemctl stop buildbot.service``
+once the worker is idle. The buildbot server must be started manually after
+the update is done.
 
 ## Monitoring
 
