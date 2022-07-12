@@ -23,8 +23,9 @@
     opts: defaults,bind
     state: mounted
 
+# use apt/dnf for first update to force cache update
 - name: Install Python build dependencies (Debian/Ubuntu)
-  package:
+  ansible.builtin.apt:
     state: present
     name:
       - build-essential
@@ -48,10 +49,11 @@
       - uuid-dev
       # - xvfb
       - zlib1g-dev
+    update_cache: true
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install Python build dependencies (Fedora)
-  package:
+  ansible.builtin.dnf:
     state: present
     name:
       - gcc
@@ -75,6 +77,7 @@
       # - tk-devel
       - xz-devel
       - zlib-devel
+    update_cache: true
   when: ansible_distribution == 'Fedora'
 
 - name: Update ccache symlinks

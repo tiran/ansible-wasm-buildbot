@@ -108,7 +108,7 @@
   become: true
   become_user: "{{ buildbot_user }}"
 
-- name: Pre-build ports with embuilder
+- name: Pre-build ports with embuilder (PIC)
   ansible.builtin.command:
     cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
   with_items: "{{ embuilder_targets }}"
