@@ -30,11 +30,9 @@ partprobe /dev/disk/azure/scsi1/lun0-part1
 
 ## Post installation
 
-The playbook does not provision and start the buildbot service. Follow the
-on-screen installations to create the worker and start the buildbot.
+The playbook does not start the buildbot service.
 
 ```shell
-# su buildbot -c '.../bin/buildbot-worker create-worker ...
 # systemctl start buildbot.service
 ```
 

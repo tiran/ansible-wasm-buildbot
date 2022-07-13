@@ -28,10 +28,9 @@
     - role: buildbot
 
   post_tasks:
-    - name: Print create-worker command
+    - name: Show path to buildbot.tac
       ansible.builtin.debug:
-        msg: "su buildbot -c '{{ buildbot_venv }}/bin/buildbot-worker create-worker {{ buildbot_basedir }} buildbot-api.python.org:9020 {{ buildbot_name }} SECRET'"
-      when: buildbot_tac is defined and not buildbot_tac.stat.exists
+        msg: "Buildbot TAC file is {{ buildbot_basedir }}/buildbot.tac"
 
     - name: Print systemctl command
       ansible.builtin.debug:

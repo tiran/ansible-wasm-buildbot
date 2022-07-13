@@ -28,6 +28,18 @@
   become: true
   become_user: "{{ buildbot_user }}"
 
+- name: Check for buildbot.tac
+  ansible.builtin.stat:
+    path: "{{ buildbot_basedir }}/buildbot.tac"
+  register: buildbot_tac
+
+- name: Create buildbot.tac (with invalid password)
+  ansible.builtin.command:
+    cmd: "{{ buildbot_venv }}/bin/buildbot-worker create-worker {{ buildbot_basedir }} buildbot-api.python.org:9020 {{ buildbot_name }} {{ buildbot_secret }}"
+  become: true
+  become_user: "{{ buildbot_user }}"
+  when: not buildbot_tac.stat.exists
+
 - name: Create buildbot directories
   ansible.builtin.file:
     path: "{{ item }}"
@@ -38,6 +50,12 @@
   with_items:
     - "{{ buildbot_basedir }}"
     - "{{ buildbot_basedir }}/info"
+
+- name: Reduce keepalive
+  ansible.builtin.lineinfile:
+    path: "{{ buildbot_basedir }}/buildbot.tac"
+    regexp: "^keepalive ="
+    line: "keepalive = 180"
 
 - name: Create buildbot info/admin
   template:
@@ -54,11 +72,6 @@
     owner: "{{ buildbot_user }}"
     group: "{{ buildbot_user }}"
     mode: '0644'
-
-- name: Check for buildbot.tac
-  ansible.builtin.stat:
-    path: "{{ buildbot_basedir }}/buildbot.tac"
-  register: buildbot_tac
 
 - name: Create systemd service
   template:
