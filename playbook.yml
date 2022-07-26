@@ -3,9 +3,9 @@
   hosts: all
 
   vars:
-    emsdk_version: "3.1.15"
+    emsdk_version: "3.1.17"
     wasi_sdk_version: "16"
-    wasmtime_version: "0.38.0"
+    wasmtime_version: "0.39.1"
     pyenv_env: "system"
     pyenv_path: "/opt/pyenv"
     pyenv_enable_autocompletion: false
