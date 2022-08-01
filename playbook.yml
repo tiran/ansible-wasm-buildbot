@@ -22,7 +22,6 @@
   roles:
     - role: emsdk
     - role: wasi-sdk
-    - role: wasix
     - role: wasmtime
     - role: staticdev.pyenv
     - role: buildbot
