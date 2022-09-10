@@ -13,7 +13,12 @@
       - libpq-devel
   when: ansible_distribution == 'Fedora'
 
-# NOTE: buildbot user account is created in "common" role
+- name: Create buildbot user account
+  ansible.builtin.user:
+    name: "{{ buildbot_user }}"
+    comment: Python buildbot
+    create_home: true
+    home: "{{ buildbot_home }}"
 
 - name: Create buildbot venv
   ansible.builtin.command:
@@ -21,6 +26,12 @@
     creates: "{{ buildbot_venv }}/bin/pip"
   become: true
   become_user: "{{ buildbot_user }}"
+
+- name: Add PYENV_ROOT to /etc/environment
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^PYENV_ROOT='
+    line: PYENV_ROOT="{{ pyenv_path }}"
 
 - name: Install / upgrade buildbot worker
   ansible.builtin.command:
@@ -33,7 +44,7 @@
     path: "{{ buildbot_basedir }}/buildbot.tac"
   register: buildbot_tac
 
-- name: Create buildbot.tac (with invalid password)
+- name: Create buildbot.tac
   ansible.builtin.command:
     cmd: "{{ buildbot_venv }}/bin/buildbot-worker create-worker {{ buildbot_basedir }} buildbot-api.python.org:9020 {{ buildbot_name }} {{ buildbot_secret }}"
   become: true
@@ -86,3 +97,52 @@
     name: "buildbot"
     daemon_reload: true
     enabled: true
+
+# cache emports as buildbot. embuilder clears outdated builds for us.
+- name: Pre-build ports with embuilder
+  ansible.builtin.command:
+    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build {{ item }}"
+  with_items:
+    - zlib
+    - bzip2
+    - sqlite3-mt
+    - libc-mt
+    - MINIMAL
+  environment:
+    EM_COMPILER_WRAPPER: ccache
+  register: embuilder_output
+  changed_when: '" generating " in embuilder_output.stderr'
+  become: true
+  become_user: "{{ buildbot_user }}"
+
+- name: Pre-build ports with embuilder (PIC)
+  ansible.builtin.command:
+    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
+  with_items:
+    - zlib
+    - bzip2
+    - sqlite3
+    - libc
+    - MINIMAL_PIC
+  environment:
+    EM_COMPILER_WRAPPER: ccache
+  register: embuilder_output
+  changed_when: '" generating " in embuilder_output.stderr'
+  become: true
+  become_user: "{{ buildbot_user }}"
+
+- name: Pre-build ports with embuilder (wasm64)
+  ansible.builtin.command:
+    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build --wasm64 {{ item }}"
+  with_items:
+    - zlib
+    - bzip2
+    - sqlite3
+    - libc
+    - MINIMAL
+  environment:
+    EM_COMPILER_WRAPPER: ccache
+  register: embuilder_output
+  changed_when: '" generating " in embuilder_output.stderr'
+  become: true
+  become_user: "{{ buildbot_user }}"

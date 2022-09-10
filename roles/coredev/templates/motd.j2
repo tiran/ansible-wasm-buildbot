@@ -1,0 +1,21 @@
+*****************************************************************************
+
+Dear core developers,
+
+welcome to the WebAssembly build and test system.
+
+- Your home directory comes pre-populated with a CPython checkout of your
+  fork plus python/cpython upstream.
+- Packages like gcc, clang, ccache, vim, emacs, development headers, and
+  more are pre-installed. Please contact Christian Heimes if you need
+  additional packages.
+- Emscripten SDK {{ emsdk_version }} is installed at {{ emsdk_path }}.
+- WASI SDK {{ wasi_sdk_version }} is installed at {{ wasi_sdk_path }}.
+- wasmtime {{ wasmtime_version }} is installed at {{ wasmtime_home }}.
+- The script "Tools/wasm/wasm_build.py" in cpython checkout automates
+  build for you.
+- The first build with Emscripten SDK is slow. The SDK has to populate
+  your local build cache after each update. Don't be alarmed if
+  "checking whether the C compiler works..." takes a minute or two.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

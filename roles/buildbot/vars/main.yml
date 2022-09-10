@@ -1,3 +1,0 @@
----
-buildbot_venv: "{{ buildbot_home }}/buildbot-venv"
-buildbot_basedir: "{{ buildbot_home }}/{{ buildbot_name }}"

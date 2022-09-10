@@ -6,6 +6,7 @@
     fstype: xfs
     opts: defaults,nofail
     state: mounted
+  when: false
 
 - name: Create /datadrive/opt directory
   ansible.builtin.file:
@@ -92,24 +93,11 @@
     name:
       - netdata
 
-- name: Enable buildbot systemd service
+- name: Enable netdata systemd service
   ansible.builtin.systemd:
     name: "netdata"
     enabled: true
     state: started
-
-- name: Create buildbot user account
-  ansible.builtin.user:
-    name: "{{ buildbot_user }}"
-    comment: Python buildbot
-    create_home: true
-    home: "{{ buildbot_home }}"
-
-- name: Add PYENV_ROOT to /etc/environment
-  ansible.builtin.lineinfile:
-    path: /etc/environment
-    regexp: '^PYENV_ROOT='
-    line: PYENV_ROOT="{{ pyenv_path }}"
 
 - name: Add PATH to /etc/environment (Debian/Ubuntu)
   ansible.builtin.lineinfile:
@@ -126,3 +114,10 @@
     # PATH=/usr/lib64/ccache:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
     line: PATH="/usr/lib64/ccache:/opt/emsdk/upstream/emscripten:/opt/emsdk/node/current/bin:/opt/wasmtime/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
   when: ansible_distribution == 'Fedora'
+
+- name: Disable motd service
+  ansible.builtin.lineinfile:
+    path: /etc/default/motd-news
+    regexp: '^ENABLED='
+    line: ENABLED=0
+  when: ansible_distribution == 'Ubuntu'

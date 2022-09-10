@@ -1,0 +1,81 @@
+---
+- name: Install additional developer tools
+  ansible.builtin.package:
+    state: present
+    name:
+      - nano
+      - vim
+      - emacs
+      - elpa-elpy
+      - lcov
+      - gdb
+      - clang
+      - lldb
+      - cargo
+      - rustc
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install debug symbols helper
+  ansible.builtin.package:
+    state: present
+    name:
+      - ubuntu-dbgsym-keyring
+      - debian-goodies
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Enable debug symbols repo
+  template:
+    src: ddebs.list.j2
+    dest: /etc/apt/sources.list.d/ddebs.list
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Add motd
+  template:
+    src: motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create /datadrive/home directory
+  ansible.builtin.file:
+    path: /datadrive/home
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Add coredev group
+  ansible.builtin.group:
+    name: coredev
+    state: present
+
+- name: Add user
+  ansible.builtin.user:
+    user: "{{ item.login }}"
+    comment: "{{ item.name }}"
+    create_home: true
+    groups: coredev
+    append: true
+    home: "/datadrive/home/{{ item.login }}"
+  with_items: "{{ users }}"
+
+- name: Set authorized keys from Github account
+  ansible.posix.authorized_key:
+    user: "{{ item.login }}"
+    key: "https://github.com/{{ item.github }}.keys"
+  with_items: "{{ users }}"
+
+- name: Symlink home dirs
+  ansible.builtin.file:
+    src: "/datadrive/home/{{ item.login }}"
+    dest: "/home/{{ item.login }}"
+    state: link
+  with_items: "{{ users }}"
+
+- name: git checkout CPython
+  include_tasks: git_cpython.yml
+  loop: "{{ users }}"

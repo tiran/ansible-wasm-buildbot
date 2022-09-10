@@ -1,36 +1,25 @@
 ---
 - name: WASM build env
   hosts: all
-
-  vars:
-    emsdk_version: "3.1.17"
-    wasi_sdk_version: "16"
-    wasmtime_version: "0.39.1"
-    pyenv_env: "system"
-    pyenv_path: "/opt/pyenv"
-    pyenv_enable_autocompletion: false
-    pyenv_python_versions:
-      - 3.9.13
-    pyenv_global:
-      - 3.9.13
-    buildbot_user: "buildbot"
-    buildbot_home: "/opt/buildbot"
-    buildbot_name: "bcannon-wasm"
-    buildbot_info_admin: "Christian Heimes <christian@python.org>"
-    buildbot_info_host: "WebAssembly buildbot"
-
   roles:
     - role: emsdk
     - role: wasi-sdk
     - role: wasmtime
+
+- name: Buildbot service
+  hosts: wasm_buildbot
+  roles:
     - role: staticdev.pyenv
     - role: buildbot
-
   post_tasks:
     - name: Show path to buildbot.tac
       ansible.builtin.debug:
         msg: "Buildbot TAC file is {{ buildbot_basedir }}/buildbot.tac"
-
     - name: Print systemctl command
       ansible.builtin.debug:
         msg: "systemctl start buildbot.service"
+
+- name: Core dev test host
+  hosts: wasm_coredev
+  roles:
+    - role: coredev

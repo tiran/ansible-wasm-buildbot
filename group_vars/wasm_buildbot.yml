@@ -1,0 +1,13 @@
+---
+pyenv_env: "system"
+pyenv_path: "/opt/pyenv"
+pyenv_enable_autocompletion: false
+pyenv_python_versions:
+    - 3.9.13
+pyenv_global:
+    - 3.9.13
+buildbot_user: "buildbot"
+buildbot_home: "/opt/buildbot"
+buildbot_name: "bcannon-wasm"
+buildbot_info_admin: "Christian Heimes <christian@python.org>"
+buildbot_info_host: "WebAssembly buildbot"

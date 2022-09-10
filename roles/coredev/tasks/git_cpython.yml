@@ -1,0 +1,46 @@
+---
+- name: "Git checkout CPython from fork {{ item.github }}"
+  ansible.builtin.git:
+    repo: "https://github.com/{{ item.github }}/cpython.git"
+    dest: "/datadrive/home/{{ item.login }}/cpython"
+    update: false
+    umask: '0027'
+  register: git_checkout
+  become_user: "{{ item.login }}"
+  become: true
+
+- name: Add CPython upstream to checkout
+  ansible.builtin.command:
+    cmd: "git remote add --fetch upstream https://github.com/python/cpython.git"
+    chdir: "/datadrive/home/{{ item.login }}/cpython"
+  register: git_remote
+  failed_when: "git_remote.rc != 0 and 'remote upstream already exists' not in git_remote.stderr"
+  changed_when: "git_remote.rc == 0"
+  when: "git_checkout.changed"
+  become_user: "{{ item.login }}"
+  become: true
+
+- name: Set default main
+  ansible.builtin.command:
+    cmd: "git branch --set-upstream-to=upstream/main main"
+    chdir: "/datadrive/home/{{ item.login }}/cpython"
+  when: "git_checkout.changed"
+  become_user: "{{ item.login }}"
+  become: true
+
+- name: git pull
+  ansible.builtin.command:
+    cmd: "git pull"
+    chdir: "/datadrive/home/{{ item.login }}/cpython"
+  when: "git_checkout.changed"
+  become_user: "{{ item.login }}"
+  become: true
+
+- name: git fetch --all
+  ansible.builtin.command:
+    cmd: "git fetch --all --auto-gc"
+    chdir: "/datadrive/home/{{ item.login }}/cpython"
+  become_user: "{{ item.login }}"
+  become: true
+  failed_when: false
+  changed_when: false

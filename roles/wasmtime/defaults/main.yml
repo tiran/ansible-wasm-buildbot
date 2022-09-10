@@ -2,3 +2,6 @@
 wasmtime_home: "/opt/wasmtime"
 # "latest" is not supported yet
 wasmtime_version: "0.36.0"
+
+wasmtime_install: "{{ wasmtime_home }}/install-wasmtime.sh"
+wasmtime_cmd: "{{ wasmtime_home }}/bin/wasmtime"

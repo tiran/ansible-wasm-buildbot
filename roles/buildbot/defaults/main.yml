@@ -3,3 +3,7 @@ buildbot_user: "buildbot"
 buildbot_home: "/opt/buildbot"
 buildbot_name: "bcannon-wasm"
 buildbot_secret: "CHANGEME"
+emsdk_path: "/opt/emsdk"
+
+buildbot_venv: "{{ buildbot_home }}/buildbot-venv"
+buildbot_basedir: "{{ buildbot_home }}/{{ buildbot_name }}"

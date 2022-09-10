@@ -1,3 +1,5 @@
 [wasm_buildbot]
 buildbot.host.example ansible_user=azureuser buildbot_secret="CHANGEME"
 
+[wasm_coredev]
+coredev.host.example ansible_user=azureuser

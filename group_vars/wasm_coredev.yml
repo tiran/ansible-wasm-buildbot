@@ -1,0 +1,29 @@
+---
+users:
+  - login: ambv
+    name: Łukasz Langa
+    github: ambv
+  - login: brettcannon
+    name: Brett Cannon
+    github: brettcannon
+  - login: encukou
+    name: Petr Viktorin
+    github: encukou
+  - login: gpshead
+    name: Gregory P. Smith
+    github: gpshead
+  - login: heimes
+    name: Christian Heimes
+    github: tiran
+  - login: iritkatriel
+    name: Irit Katriel
+    github: iritkatriel
+  - login: markshannon
+    name: Mark Shannon
+    github: markshannon
+  - login: pablogsal
+    name: Pablo Galindo Salgado
+    github: pablogsal
+  - login: yhg1s
+    name: Thomas Wouters
+    github: Yhg1s

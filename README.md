@@ -36,6 +36,12 @@ The playbook does not start the buildbot service.
 # systemctl start buildbot.service
 ```
 
+## Configuration
+
+Emscripten version, WASI SDK version, wasmtime version, and core dev user
+accounts are configured in `group_vars/*`. Core dev SSH keys are gathered
+from GitHub.
+
 ## Updates
 
 The playbook can update and downgrade EMSDK, WASI-SDK, WASIX, and wasmtime.

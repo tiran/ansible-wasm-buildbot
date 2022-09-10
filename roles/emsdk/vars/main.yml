@@ -1,7 +1,0 @@
----
-embuilder_targets:
-  - zlib
-  - bzip2
-  - MINIMAL_PIC
-
-emscripten_version_file: "{{ emsdk_path }}/upstream/emscripten/emscripten-version.txt"

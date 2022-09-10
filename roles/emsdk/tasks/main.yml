@@ -96,29 +96,6 @@
     group: root
     mode: '0755'
 
-# cache emports as buildbot. embuilder clears outdated builds for us.
-- name: Pre-build ports with embuilder
-  ansible.builtin.command:
-    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build {{ item }}"
-  with_items: "{{ embuilder_targets }}"
-  environment:
-    EM_COMPILER_WRAPPER: ccache
-  register: embuilder_output
-  changed_when: '" generating " in embuilder_output.stderr'
-  become: true
-  become_user: "{{ buildbot_user }}"
-
-- name: Pre-build ports with embuilder (PIC)
-  ansible.builtin.command:
-    cmd: "{{ emsdk_path }}/upstream/emscripten/embuilder build --pic {{ item }}"
-  with_items: "{{ embuilder_targets }}"
-  environment:
-    EM_COMPILER_WRAPPER: ccache
-  register: embuilder_output
-  changed_when: '" generating " in embuilder_output.stderr'
-  become: true
-  become_user: "{{ buildbot_user }}"
-
 - name: Add EMSDK to /etc/environment
   ansible.builtin.lineinfile:
     path: /etc/environment
