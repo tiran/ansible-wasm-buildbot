@@ -1,7 +1,7 @@
 ---
 emsdk_version: "3.1.19"
 emsdk_path: "/opt/emsdk"
-wasi_sdk_version: "16"
+wasi_sdk_version: "19"
 wasi_sdk_path: "/opt/wasi-sdk"
-wasmtime_version: "0.40.1"
+wasmtime_version: "5.0.0"
 wasmtime_home: "/opt/wasmtime"
