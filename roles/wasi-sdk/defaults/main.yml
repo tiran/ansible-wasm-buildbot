@@ -1,5 +1,5 @@
 ---
 wasi_sdk_path: "/opt/wasi-sdk"
-wasi_sdk_version: "16"
+wasi_sdk_version: "19"
 
 wasi_sdk_version_file: "{{ wasi_sdk_path }}/wasi-sdk-version.txt"

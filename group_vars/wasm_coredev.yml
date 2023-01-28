@@ -27,3 +27,6 @@ users:
   - login: yhg1s
     name: Thomas Wouters
     github: Yhg1s
+  - login: kdas
+    name: Kushal Das
+    github: kushaldas
